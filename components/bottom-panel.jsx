@@ -6,15 +6,9 @@ import { ChevronUp, ChevronDown, Terminal, Bug, MessageSquare, History } from "l
 import { TerminalView } from "@/components/terminal-view"
 import { LogsView } from "@/components/logs-view"
 import { AiAssistant } from "@/components/ai-assistant"
+import { FlowChart } from "@/components/flow-chart"
 
-interface BottomPanelProps {
-  collapsed: boolean
-  onToggle: () => void
-  activeTab: string
-  onTabChange: (tab: string) => void
-}
-
-export function BottomPanel({ collapsed, onToggle, activeTab, onTabChange }: BottomPanelProps) {
+export function BottomPanel({ collapsed, onToggle, activeTab, onTabChange }) {
   return (
     <div className="h-full flex flex-col bg-background border-t border-border">
       <div className="flex items-center justify-between p-2 border-b border-border">
@@ -23,6 +17,10 @@ export function BottomPanel({ collapsed, onToggle, activeTab, onTabChange }: Bot
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1">
               <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
                 <TabsList className="h-8 bg-transparent">
+                  <TabsTrigger value="flowchart" className="h-7 px-3 data-[state=active]:bg-background">
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    Flowchart
+                  </TabsTrigger>
                   <TabsTrigger value="terminal" className="h-7 px-3 data-[state=active]:bg-background">
                     <Terminal className="h-4 w-4 mr-2" />
                     Terminal
@@ -58,6 +56,7 @@ export function BottomPanel({ collapsed, onToggle, activeTab, onTabChange }: Bot
             className="flex-1 overflow-hidden"
           >
             <div className="h-full">
+              {activeTab === "flowchart" && <FlowChart />}
               {activeTab === "terminal" && <TerminalView />}
               {activeTab === "logs" && <LogsView />}
               {activeTab === "assistant" && <AiAssistant />}

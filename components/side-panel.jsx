@@ -356,7 +356,33 @@ export function SidePanel({ collapsed, onToggle, onMachineSelectionChange, onVie
               exit={{ opacity: 0, width: 0 }}
               className="overflow-hidden"
             >
-              <h2 className="text-sm font-medium">Machines</h2>
+              <div className="flex items-center justify-between w-full">
+                <h2 className="text-sm font-medium">Machines</h2>
+                <div className="flex bg-muted rounded-md p-0.5">
+                  <button
+                    onClick={() => setViewMode("individual")}
+                    className={cn(
+                      "px-2 py-1 text-xs rounded-sm transition-colors",
+                      viewMode === "individual"
+                        ? "bg-background text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    Individual
+                  </button>
+                  <button
+                    onClick={() => setViewMode("fleet")}
+                    className={cn(
+                      "px-2 py-1 text-xs rounded-sm transition-colors",
+                      viewMode === "fleet"
+                        ? "bg-background text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    Fleets
+                  </button>
+                </div>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
