@@ -16,19 +16,61 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Plus, Trash2, Save, Ship, Plane, Car, Bike, Server, Cog, Users, Filter, Search } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-export function FleetManagementView({ fleets, machines, onFleetCreate, onFleetUpdate, onFleetDelete }) {
-  const [selectedFleet, setSelectedFleet] = useState(null)
+interface Machine {
+  id: string
+  name: string
+  icon: any
+  category: string
+  manufacturer?: string
+  sensors?: Sensor[]
+  fleetId?: string
+}
+
+interface Fleet {
+  id: string
+  name: string
+  type: string
+  machines: Machine[]
+  category: string
+  description?: string
+}
+
+interface Sensor {
+  id: string
+  name: string
+  type: string
+  value: string
+  unit: string
+  status: "normal" | "warning" | "critical"
+}
+
+interface FleetManagementViewProps {
+  fleets: Fleet[]
+  machines: Machine[]
+  onFleetCreate: (fleet: Omit<Fleet, "id">) => void
+  onFleetUpdate: (fleet: Fleet) => void
+  onFleetDelete: (fleetId: string) => void
+}
+
+export function FleetManagementView({
+  fleets,
+  machines,
+  onFleetCreate,
+  onFleetUpdate,
+  onFleetDelete,
+}: FleetManagementViewProps) {
+  const [selectedFleet, setSelectedFleet] = useState<Fleet | null>(null)
   const [isCreatingFleet, setIsCreatingFleet] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-  const [filterCategory, setFilterCategory] = useState("all")
-  const [filterSensorType, setFilterSensorType] = useState("all")
+  const [filterCategory, setFilterCategory] = useState<string>("all")
+  const [filterSensorType, setFilterSensorType] = useState<string>("all")
 
   const [newFleet, setNewFleet] = useState({
     name: "",
     type: "",
     category: "planes",
     description: "",
-    selectedMachines: [],
+    selectedMachines: [] as string[],
   })
 
   const categories = [
@@ -94,7 +136,7 @@ export function FleetManagementView({ fleets, machines, onFleetCreate, onFleetUp
     })
   }
 
-  const handleMachineToggle = (machineId) => {
+  const handleMachineToggle = (machineId: string) => {
     setNewFleet((prev) => ({
       ...prev,
       selectedMachines: prev.selectedMachines.includes(machineId)
@@ -126,7 +168,7 @@ export function FleetManagementView({ fleets, machines, onFleetCreate, onFleetUp
     setIsCreatingFleet(false)
   }
 
-  const getCategoryIcon = (category) => {
+  const getCategoryIcon = (category: string) => {
     switch (category) {
       case "cars":
         return Car

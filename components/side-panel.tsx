@@ -44,15 +44,58 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-export function SidePanel({ collapsed, onToggle, onMachineSelectionChange, onViewChange }) {
+interface SidePanelProps {
+  collapsed: boolean
+  onToggle: () => void
+  onMachineSelectionChange: (selection: MachineSelection) => void
+  onViewChange: (view: string) => void
+}
+
+interface Machine {
+  id: string
+  name: string
+  icon: any
+  category: string
+  manufacturer?: string
+  sensors?: Sensor[]
+  fleetId?: string
+}
+
+interface Fleet {
+  id: string
+  name: string
+  type: string
+  machines: Machine[]
+  category: string
+  description?: string
+}
+
+interface Sensor {
+  id: string
+  name: string
+  type: string
+  value: string
+  unit: string
+  status: "normal" | "warning" | "critical"
+}
+
+interface MachineSelection {
+  type: "single" | "fleet" | "machine-detail" | "fleet-management"
+  id: string
+  name: string
+  machines: Machine[]
+  machine?: Machine
+}
+
+export function SidePanel({ collapsed, onToggle, onMachineSelectionChange, onViewChange }: SidePanelProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [activeTab, setActiveTab] = useState("home")
-  const [viewMode, setViewMode] = useState("individual")
-  const [expandedFleets, setExpandedFleets] = useState(new Set())
+  const [viewMode, setViewMode] = useState<"individual" | "fleet">("individual")
+  const [expandedFleets, setExpandedFleets] = useState<Set<string>>(new Set())
 
   // Generate UAV drone fleet
-  const [uavFleet] = useState(() => {
-    const drones = []
+  const [uavFleet] = useState<Fleet>(() => {
+    const drones: Machine[] = []
     for (let i = 1; i <= 20; i++) {
       const batteryLevel = Math.floor(Math.random() * 100)
       const height = Math.floor(Math.random() * 500) + 50 // 50-550 meters
@@ -103,7 +146,7 @@ export function SidePanel({ collapsed, onToggle, onMachineSelectionChange, onVie
     }
   })
 
-  const [machines, setMachines] = useState([
+  const [machines, setMachines] = useState<Machine[]>([
     // Home Automation
     { id: "lights", name: "Smart Lights", icon: Lightbulb, category: "home", manufacturer: "Philips" },
     { id: "locks", name: "Door Locks", icon: Lock, category: "home", manufacturer: "August" },
@@ -163,23 +206,23 @@ export function SidePanel({ collapsed, onToggle, onMachineSelectionChange, onVie
     { id: "printers", name: "Printers", icon: Printer, category: "computers", manufacturer: "Canon" },
   ])
 
-  const [fleets, setFleets] = useState([uavFleet])
+  const [fleets, setFleets] = useState<Fleet[]>([uavFleet])
 
-  const [selectedMachine, setSelectedMachine] = useState(null)
+  const [selectedMachine, setSelectedMachine] = useState<Machine | null>(null)
 
-  const getFilteredMachines = (category) => {
+  const getFilteredMachines = (category: string) => {
     return machines
       .filter((machine) => machine.category === category && !machine.fleetId)
       .filter((machine) => machine.name.toLowerCase().includes(searchQuery.toLowerCase()))
   }
 
-  const getFilteredFleets = (category) => {
+  const getFilteredFleets = (category: string) => {
     return fleets
       .filter((fleet) => fleet.category === category)
       .filter((fleet) => fleet.name.toLowerCase().includes(searchQuery.toLowerCase()))
   }
 
-  const handleMachineClick = (machine) => {
+  const handleMachineClick = (machine: Machine) => {
     setSelectedMachine(machine)
     onMachineSelectionChange({
       type: "machine-detail",
@@ -191,7 +234,7 @@ export function SidePanel({ collapsed, onToggle, onMachineSelectionChange, onVie
     onViewChange("preview") // Changed from "machine-detail" to "preview"
   }
 
-  const handleFleetClick = (fleet) => {
+  const handleFleetClick = (fleet: Fleet) => {
     const isExpanded = expandedFleets.has(fleet.id)
     if (isExpanded) {
       setExpandedFleets((prev) => {
@@ -214,7 +257,7 @@ export function SidePanel({ collapsed, onToggle, onMachineSelectionChange, onVie
     onViewChange("fleet-management")
   }
 
-  const toggleFleetExpansion = (fleetId) => {
+  const toggleFleetExpansion = (fleetId: string) => {
     setExpandedFleets((prev) => {
       const newSet = new Set(prev)
       if (newSet.has(fleetId)) {
@@ -226,7 +269,7 @@ export function SidePanel({ collapsed, onToggle, onMachineSelectionChange, onVie
     })
   }
 
-  const renderMachineList = (category) => (
+  const renderMachineList = (category: string) => (
     <div className={cn("py-2", collapsed ? "px-2" : "px-1")}>
       {viewMode === "fleet" && (
         <>
@@ -356,33 +399,7 @@ export function SidePanel({ collapsed, onToggle, onMachineSelectionChange, onVie
               exit={{ opacity: 0, width: 0 }}
               className="overflow-hidden"
             >
-              <div className="flex items-center justify-between w-full">
-                <h2 className="text-sm font-medium">Machines</h2>
-                <div className="flex bg-muted rounded-md p-0.5">
-                  <button
-                    onClick={() => setViewMode("individual")}
-                    className={cn(
-                      "px-2 py-1 text-xs rounded-sm transition-colors",
-                      viewMode === "individual"
-                        ? "bg-background text-foreground shadow-sm"
-                        : "text-muted-foreground hover:text-foreground",
-                    )}
-                  >
-                    Individual
-                  </button>
-                  <button
-                    onClick={() => setViewMode("fleet")}
-                    className={cn(
-                      "px-2 py-1 text-xs rounded-sm transition-colors",
-                      viewMode === "fleet"
-                        ? "bg-background text-foreground shadow-sm"
-                        : "text-muted-foreground hover:text-foreground",
-                    )}
-                  >
-                    Fleets
-                  </button>
-                </div>
-              </div>
+              <h2 className="text-sm font-medium">Machines</h2>
             </motion.div>
           )}
         </AnimatePresence>
@@ -406,7 +423,7 @@ export function SidePanel({ collapsed, onToggle, onMachineSelectionChange, onVie
 
             <div>
               <Label htmlFor="view-mode">View Mode</Label>
-              <Select value={viewMode} onValueChange={(value) => setViewMode(value)}>
+              <Select value={viewMode} onValueChange={(value: "individual" | "fleet") => setViewMode(value)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

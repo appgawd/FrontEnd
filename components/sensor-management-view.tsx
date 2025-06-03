@@ -26,15 +26,50 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-export function SensorManagementView({ machine, selectedSensor, onBack, onSensorUpdate, onSensorDelete, onSensorAdd }) {
-  const [editingSensor, setEditingSensor] = useState(selectedSensor || null)
+interface Machine {
+  id: string
+  name: string
+  icon: any
+  category: string
+  manufacturer?: string
+  sensors?: Sensor[]
+  fleetId?: string
+}
+
+interface Sensor {
+  id: string
+  name: string
+  type: string
+  value: string
+  unit: string
+  status: "normal" | "warning" | "critical"
+}
+
+interface SensorManagementViewProps {
+  machine: Machine
+  selectedSensor?: Sensor | null
+  onBack: () => void
+  onSensorUpdate: (sensor: Sensor) => void
+  onSensorDelete: (sensorId: string) => void
+  onSensorAdd: (sensor: Omit<Sensor, "id">) => void
+}
+
+export function SensorManagementView({
+  machine,
+  selectedSensor,
+  onBack,
+  onSensorUpdate,
+  onSensorDelete,
+  onSensorAdd,
+}: SensorManagementViewProps) {
+  const [editingSensor, setEditingSensor] = useState<Sensor | null>(selectedSensor || null)
   const [isAddingNew, setIsAddingNew] = useState(!selectedSensor)
   const [newSensor, setNewSensor] = useState({
     name: "",
     type: "temperature",
     value: "0",
     unit: "°C",
-    status: "normal",
+    status: "normal" as const,
   })
 
   const sensorTypes = [
@@ -56,7 +91,7 @@ export function SensorManagementView({ machine, selectedSensor, onBack, onSensor
     { value: "critical", label: "Critical", color: "text-red-500", icon: XCircle },
   ]
 
-  const handleSensorTypeChange = (type) => {
+  const handleSensorTypeChange = (type: string) => {
     const sensorType = sensorTypes.find((t) => t.value === type)
     if (sensorType) {
       if (isAddingNew) {
@@ -98,7 +133,7 @@ export function SensorManagementView({ machine, selectedSensor, onBack, onSensor
     setEditingSensor(null)
   }
 
-  const handleEditExisting = (sensor) => {
+  const handleEditExisting = (sensor: Sensor) => {
     setEditingSensor(sensor)
     setIsAddingNew(false)
   }
@@ -284,7 +319,7 @@ export function SensorManagementView({ machine, selectedSensor, onBack, onSensor
                     <Label htmlFor="sensor-status">Status</Label>
                     <Select
                       value={isAddingNew ? newSensor.status : editingSensor?.status || ""}
-                      onValueChange={(value) => {
+                      onValueChange={(value: "normal" | "warning" | "critical") => {
                         if (isAddingNew) {
                           setNewSensor((prev) => ({ ...prev, status: value }))
                         } else if (editingSensor) {

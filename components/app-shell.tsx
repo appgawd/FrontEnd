@@ -10,6 +10,14 @@ import { BottomPanel } from "@/components/bottom-panel"
 import { StatusBar } from "@/components/status-bar"
 import { cn } from "@/lib/utils"
 
+interface MachineSelection {
+  type: "single" | "fleet" | "machine-detail" | "fleet-management"
+  id: string
+  name: string
+  machines: any[]
+  machine?: any
+}
+
 export function AppShell() {
   const [collapsed, setCollapsed] = useState({
     left: false,
@@ -22,21 +30,21 @@ export function AppShell() {
     bottom: "terminal",
   })
 
-  const [selectedMachines, setSelectedMachines] = useState(null)
-  const [currentView, setCurrentView] = useState("flowchart")
+  const [selectedMachines, setSelectedMachines] = useState<MachineSelection | null>(null)
+  const [currentView, setCurrentView] = useState<string>("flowchart")
 
-  const togglePanel = (panel) => {
+  const togglePanel = (panel: "left" | "right" | "bottom") => {
     setCollapsed((prev) => ({
       ...prev,
       [panel]: !prev[panel],
     }))
   }
 
-  const handleMachineSelectionChange = (selection) => {
+  const handleMachineSelectionChange = (selection: MachineSelection) => {
     setSelectedMachines(selection)
   }
 
-  const handleViewChange = (view) => {
+  const handleViewChange = (view: string) => {
     setCurrentView(view)
     setActiveTab((prev) => ({ ...prev, workspace: view }))
   }

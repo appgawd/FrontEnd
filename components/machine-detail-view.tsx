@@ -23,10 +23,35 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-export function MachineDetailView({ machine, onSensorClick, onAddSensor }) {
-  const [selectedSensor, setSelectedSensor] = useState(null)
+interface Machine {
+  id: string
+  name: string
+  icon: any
+  category: string
+  manufacturer?: string
+  sensors?: Sensor[]
+  fleetId?: string
+}
 
-  const getSensorIcon = (type) => {
+interface Sensor {
+  id: string
+  name: string
+  type: string
+  value: string
+  unit: string
+  status: "normal" | "warning" | "critical"
+}
+
+interface MachineDetailViewProps {
+  machine: Machine
+  onSensorClick: (sensor: Sensor, machine: Machine) => void
+  onAddSensor: (machine: Machine) => void
+}
+
+export function MachineDetailView({ machine, onSensorClick, onAddSensor }: MachineDetailViewProps) {
+  const [selectedSensor, setSelectedSensor] = useState<Sensor | null>(null)
+
+  const getSensorIcon = (type: string) => {
     switch (type.toLowerCase()) {
       case "battery":
         return Battery
@@ -44,7 +69,7 @@ export function MachineDetailView({ machine, onSensorClick, onAddSensor }) {
     }
   }
 
-  const getStatusColor = (status) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case "normal":
         return "text-green-500"
@@ -57,7 +82,7 @@ export function MachineDetailView({ machine, onSensorClick, onAddSensor }) {
     }
   }
 
-  const getStatusIcon = (status) => {
+  const getStatusIcon = (status: string) => {
     switch (status) {
       case "normal":
         return CheckCircle
@@ -70,7 +95,7 @@ export function MachineDetailView({ machine, onSensorClick, onAddSensor }) {
     }
   }
 
-  const handleSensorClick = (sensor) => {
+  const handleSensorClick = (sensor: Sensor) => {
     setSelectedSensor(sensor)
     onSensorClick(sensor, machine)
   }

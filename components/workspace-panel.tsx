@@ -9,9 +9,24 @@ import { MachineDetailView } from "@/components/machine-detail-view"
 import { SensorManagementView } from "@/components/sensor-management-view"
 import { FleetManagementView } from "@/components/fleet-management-view"
 
-export function WorkspacePanel({ activeTab, onTabChange, selectedMachines, currentView }) {
-  const [selectedSensor, setSelectedSensor] = useState(null)
-  const [sensorManagementMachine, setSensorManagementMachine] = useState(null)
+interface MachineSelection {
+  type: "single" | "fleet" | "machine-detail" | "fleet-management"
+  id: string
+  name: string
+  machines: any[]
+  machine?: any
+}
+
+interface WorkspacePanelProps {
+  activeTab: string
+  onTabChange: (tab: string) => void
+  selectedMachines: MachineSelection | null
+  currentView: string
+}
+
+export function WorkspacePanel({ activeTab, onTabChange, selectedMachines, currentView }: WorkspacePanelProps) {
+  const [selectedSensor, setSelectedSensor] = useState<any>(null)
+  const [sensorManagementMachine, setSensorManagementMachine] = useState<any>(null)
 
   // Mock data for fleet management
   const [fleets, setFleets] = useState([
@@ -29,13 +44,13 @@ export function WorkspacePanel({ activeTab, onTabChange, selectedMachines, curre
     // This would be the full list of available machines
   ])
 
-  const handleSensorClick = (sensor, machine) => {
+  const handleSensorClick = (sensor: any, machine: any) => {
     setSelectedSensor(sensor)
     setSensorManagementMachine(machine)
     onTabChange("sensor-management")
   }
 
-  const handleAddSensor = (machine) => {
+  const handleAddSensor = (machine: any) => {
     setSelectedSensor(null)
     setSensorManagementMachine(machine)
     onTabChange("sensor-management")
@@ -45,31 +60,31 @@ export function WorkspacePanel({ activeTab, onTabChange, selectedMachines, curre
     onTabChange("machine-detail")
   }
 
-  const handleSensorUpdate = (sensor) => {
+  const handleSensorUpdate = (sensor: any) => {
     // Update sensor logic here
     console.log("Update sensor:", sensor)
   }
 
-  const handleSensorDelete = (sensorId) => {
+  const handleSensorDelete = (sensorId: string) => {
     // Delete sensor logic here
     console.log("Delete sensor:", sensorId)
   }
 
-  const handleSensorAdd = (sensor) => {
+  const handleSensorAdd = (sensor: any) => {
     // Add sensor logic here
     console.log("Add sensor:", sensor)
   }
 
-  const handleFleetCreate = (fleet) => {
+  const handleFleetCreate = (fleet: any) => {
     const newFleet = { ...fleet, id: `fleet-${Date.now()}` }
     setFleets((prev) => [...prev, newFleet])
   }
 
-  const handleFleetUpdate = (fleet) => {
+  const handleFleetUpdate = (fleet: any) => {
     setFleets((prev) => prev.map((f) => (f.id === fleet.id ? fleet : f)))
   }
 
-  const handleFleetDelete = (fleetId) => {
+  const handleFleetDelete = (fleetId: string) => {
     setFleets((prev) => prev.filter((f) => f.id !== fleetId))
   }
 
