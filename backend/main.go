@@ -2,11 +2,11 @@ package main
 
 import (
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 
 	"automation-platform/internal/config"
 	"automation-platform/internal/database"
@@ -15,97 +15,119 @@ import (
 )
 
 func main() {
-	// Load environment variables
-	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found")
-	}
-
-	// Initialize configuration
+	// Load configuration
 	cfg := config.Load()
+
+	// Check if database URL is provided
+	if cfg.DatabaseURL == "" {
+		log.Fatal("NEON_NEON_DATABASE_URL environment variable is required")
+	}
 
 	// Initialize database
 	db, err := database.Initialize(cfg.DatabaseURL)
 	if err != nil {
-		log.Fatal("Failed to connect to database:", err)
+		log.Fatalf("Failed to initialize database: %v", err)
 	}
 	defer db.Close()
 
 	// Run migrations
 	if err := database.RunMigrations(db); err != nil {
-		log.Fatal("Failed to run migrations:", err)
+		log.Fatalf("Failed to run migrations: %v", err)
 	}
+
+	log.Println("Database connected and migrations completed successfully")
 
 	// Initialize Gin router
 	r := gin.Default()
 
-	// Add CORS middleware
-	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000", "https://*.vercel.app"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-	}))
+	// CORS configuration
+	config := cors.DefaultConfig()
+	config.AllowOrigins = []string{
+		"http://localhost:3000",
+		"https://*.vercel.app",
+	}
+	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
+	config.AllowHeaders = []string{"Origin", "Content-Type", "Accept", "Authorization"}
+	config.AllowCredentials = true
+	r.Use(cors.New(config))
 
-	// Add logging middleware
+	// Middleware
 	r.Use(middleware.Logger())
-
-	// Initialize handlers
-	h := handlers.New(db)
+	r.Use(middleware.ErrorHandler())
 
 	// Health check endpoint
 	r.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{"status": "ok", "service": "automation-platform-api"})
+		c.JSON(http.StatusOK, gin.H{
+			"status":  "healthy",
+			"service": "automation-platform-api",
+			"version": "1.0.0",
+		})
 	})
+
+	// Initialize handlers
+	h := handlers.New(db)
 
 	// API routes
 	api := r.Group("/api/v1")
 	{
 		// Machine routes
-		api.GET("/machines", h.GetMachines)
-		api.GET("/machines/:id", h.GetMachine)
-		api.POST("/machines", h.CreateMachine)
-		api.PUT("/machines/:id", h.UpdateMachine)
-		api.DELETE("/machines/:id", h.DeleteMachine)
+		machines := api.Group("/machines")
+		{
+			machines.GET("", h.GetMachines)
+			machines.GET("/:id", h.GetMachine)
+			machines.POST("", h.CreateMachine)
+			machines.PUT("/:id", h.UpdateMachine)
+			machines.DELETE("/:id", h.DeleteMachine)
+			machines.GET("/:id/sensors", h.GetMachineSensors)
+		}
 
 		// Sensor routes
-		api.GET("/sensors", h.GetSensors)
-		api.GET("/sensors/:id", h.GetSensor)
-		api.GET("/machines/:id/sensors", h.GetMachineSensors)
-		api.POST("/sensors", h.CreateSensor)
-		api.PUT("/sensors/:id", h.UpdateSensor)
-		api.DELETE("/sensors/:id", h.DeleteSensor)
-
-		// Sensor readings routes
-		api.GET("/sensors/:id/readings", h.GetSensorReadings)
-		api.POST("/sensors/:id/readings", h.CreateSensorReading)
+		sensors := api.Group("/sensors")
+		{
+			sensors.GET("", h.GetSensors)
+			sensors.GET("/:id", h.GetSensor)
+			sensors.POST("", h.CreateSensor)
+			sensors.PUT("/:id", h.UpdateSensor)
+			sensors.DELETE("/:id", h.DeleteSensor)
+			sensors.GET("/:id/readings", h.GetSensorReadings)
+			sensors.POST("/:id/readings", h.CreateSensorReading)
+		}
 
 		// Alert routes
-		api.GET("/alerts", h.GetAlerts)
-		api.GET("/alerts/:id", h.GetAlert)
-		api.POST("/alerts", h.CreateAlert)
-		api.PUT("/alerts/:id", h.UpdateAlert)
-		api.DELETE("/alerts/:id", h.DeleteAlert)
+		alerts := api.Group("/alerts")
+		{
+			alerts.GET("", h.GetAlerts)
+			alerts.GET("/:id", h.GetAlert)
+			alerts.POST("", h.CreateAlert)
+			alerts.PUT("/:id", h.UpdateAlert)
+			alerts.DELETE("/:id", h.DeleteAlert)
+		}
 
 		// Fleet routes
-		api.GET("/fleets", h.GetFleets)
-		api.GET("/fleets/:id", h.GetFleet)
-		api.POST("/fleets", h.CreateFleet)
-		api.PUT("/fleets/:id", h.UpdateFleet)
-		api.DELETE("/fleets/:id", h.DeleteFleet)
-		api.GET("/fleets/:id/machines", h.GetFleetMachines)
-		api.POST("/fleets/:id/machines/:machine_id", h.AddMachineToFleet)
-		api.DELETE("/fleets/:id/machines/:machine_id", h.RemoveMachineFromFleet)
+		fleets := api.Group("/fleets")
+		{
+			fleets.GET("", h.GetFleets)
+			fleets.GET("/:id", h.GetFleet)
+			fleets.POST("", h.CreateFleet)
+			fleets.PUT("/:id", h.UpdateFleet)
+			fleets.DELETE("/:id", h.DeleteFleet)
+			fleets.GET("/:id/machines", h.GetFleetMachines)
+			fleets.POST("/:id/machines", h.AddMachineToFleet)
+			fleets.DELETE("/:id/machines/:machine_id", h.RemoveMachineFromFleet)
+		}
 	}
 
 	// Start server
-	port := os.Getenv("PORT")
+	port := cfg.Port
 	if port == "" {
 		port = "8080"
 	}
 
-	log.Printf("Server starting on port %s", port)
+	log.Printf("Starting server on port %s", port)
+	log.Printf("API available at http://localhost:%s/api/v1", port)
+	log.Printf("Health check at http://localhost:%s/health", port)
+
 	if err := r.Run(":" + port); err != nil {
-		log.Fatal("Failed to start server:", err)
+		log.Fatalf("Failed to start server: %v", err)
 	}
 }
