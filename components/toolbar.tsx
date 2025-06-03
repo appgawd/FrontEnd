@@ -5,7 +5,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Save, Play, Pause, StepForward, Undo, Redo, Plus, Copy, Trash, Maximize, Search, Settings } from "lucide-react"
 import { motion } from "framer-motion"
 
-export function Toolbar({ onDeleteSelected }) {
+export function Toolbar() {
   return (
     <TooltipProvider>
       <motion.div
@@ -49,7 +49,7 @@ export function Toolbar({ onDeleteSelected }) {
           <Button variant="ghost" size="icon" className="h-8 w-8">
             <Copy className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onDeleteSelected}>
+          <Button variant="ghost" size="icon" className="h-8 w-8">
             <Trash className="h-4 w-4" />
           </Button>
           <div className="h-6 w-px bg-border mx-1" />
