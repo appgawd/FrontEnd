@@ -1,14 +1,15 @@
 "use client"
 
+import { Badge } from "@/components/ui/badge"
+
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils"
+
 import {
   ChevronLeft,
   ChevronRight,
@@ -42,7 +43,6 @@ import {
   Printer,
   Settings,
 } from "lucide-react"
-import { cn } from "@/lib/utils"
 
 export function SidePanel({ collapsed, onToggle, onMachineSelectionChange, onViewChange }) {
   const [searchQuery, setSearchQuery] = useState("")
@@ -356,7 +356,32 @@ export function SidePanel({ collapsed, onToggle, onMachineSelectionChange, onVie
               exit={{ opacity: 0, width: 0 }}
               className="overflow-hidden"
             >
-              <h2 className="text-sm font-medium">Machines</h2>
+              <div className="flex items-center justify-between w-full">
+                <div className="flex bg-muted rounded-md p-0.5 w-full">
+                  <button
+                    onClick={() => setViewMode("individual")}
+                    className={cn(
+                      "px-2 py-1 text-xs rounded-sm transition-colors w-1/2",
+                      viewMode === "individual"
+                        ? "bg-background text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    Individual
+                  </button>
+                  <button
+                    onClick={() => setViewMode("fleet")}
+                    className={cn(
+                      "px-2 py-1 text-xs rounded-sm transition-colors w-1/2",
+                      viewMode === "fleet"
+                        ? "bg-background text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    Fleets
+                  </button>
+                </div>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -376,19 +401,6 @@ export function SidePanel({ collapsed, onToggle, onMachineSelectionChange, onVie
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-            </div>
-
-            <div>
-              <Label htmlFor="view-mode">View Mode</Label>
-              <Select value={viewMode} onValueChange={(value) => setViewMode(value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="individual">Individual Machines</SelectItem>
-                  <SelectItem value="fleet">Fleet View</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </motion.div>
         )}
