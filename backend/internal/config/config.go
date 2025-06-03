@@ -12,7 +12,7 @@ type Config struct {
 
 func Load() *Config {
 	return &Config{
-		DatabaseURL: getEnv("NEON_NEON_DATABASE_URL", ""),
+		DatabaseURL: getEnv("DATABASE_URL", "postgres://postgres:password@localhost:5432/automation_platform?sslmode=disable"),
 		Port:        getEnv("PORT", "8080"),
 		Environment: getEnv("ENVIRONMENT", "development"),
 	}
