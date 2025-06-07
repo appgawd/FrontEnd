@@ -101,12 +101,7 @@ export function AppShell() {
           minSize={10}
           className={cn("transition-all duration-300", collapsed.bottom && "min-h-[40px] max-h-[40px]")}
         >
-          <BottomPanel
-            collapsed={collapsed.bottom}
-            onToggle={() => togglePanel("bottom")}
-            activeTab={activeTab.bottom}
-            onTabChange={(tab) => setActiveTab((prev) => ({ ...prev, bottom: tab }))}
-          />
+         
         </ResizablePanel>
       </ResizablePanelGroup>
 
